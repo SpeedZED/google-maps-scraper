@@ -152,6 +152,7 @@ func (d *dbrunner) produceSeedJobs(ctx context.Context) error {
 		nil,
 		nil,
 		d.cfg.ExtraReviews,
+		d.cfg.PhotoMetadata,
 	)
 	if err != nil {
 		return err

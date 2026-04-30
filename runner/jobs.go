@@ -30,8 +30,13 @@ func CreateSeedJobs(
 	dedup deduper.Deduper,
 	exitMonitor exiter.Exiter,
 	extraReviews bool,
+	photoMetadata bool,
 ) (jobs []scrapemate.IJob, err error) {
 	var lat, lon float64
+
+	if fastmode && photoMetadata {
+		return nil, fmt.Errorf("photo metadata extraction requires normal browser place scraping; disable fast mode")
+	}
 
 	if fastmode {
 		if geoCoordinates == "" {
@@ -101,6 +106,9 @@ func CreateSeedJobs(
 			if extraReviews {
 				opts = append(opts, gmaps.WithExtraReviews())
 			}
+			if photoMetadata {
+				opts = append(opts, gmaps.WithPhotoMetadata())
+			}
 
 			job = gmaps.NewGmapJob(id, langCode, query, maxDepth, email, geoCoordinates, zoom, opts...)
 		} else {
@@ -149,6 +157,7 @@ func CreateGridSeedJobs(
 	dedup deduper.Deduper,
 	exitMonitor exiter.Exiter,
 	extraReviews bool,
+	photoMetadata bool,
 ) ([]scrapemate.IJob, error) {
 	if zoom < 1 || zoom > 21 {
 		return nil, fmt.Errorf("invalid zoom level: %d", zoom)
@@ -193,6 +202,9 @@ func CreateGridSeedJobs(
 
 			if extraReviews {
 				opts = append(opts, gmaps.WithExtraReviews())
+			}
+			if photoMetadata {
+				opts = append(opts, gmaps.WithPhotoMetadata())
 			}
 
 			job := gmaps.NewGmapJob(

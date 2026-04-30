@@ -43,6 +43,8 @@ type ScrapeRequest struct {
 	FastMode bool `json:"fast_mode,omitempty" example:"false"`
 	// Extract additional reviews
 	ExtraReviews bool `json:"extra_reviews,omitempty" example:"false"`
+	// Extract Google Maps photo metadata when available
+	PhotoMetadata bool `json:"photo_metadata,omitempty" example:"false"`
 	// Job timeout in seconds (1-300, default: 300)
 	Timeout int `json:"timeout,omitempty" example:"300"`
 }

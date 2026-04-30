@@ -29,6 +29,7 @@ func TestCreateGridSeedJobsRejectsInvalidZoom(t *testing.T) {
 		nil,
 		nil,
 		false,
+		false,
 	)
 	if err == nil || !strings.Contains(err.Error(), "invalid zoom level") {
 		t.Fatalf("expected invalid zoom level error, got %v", err)
@@ -50,9 +51,32 @@ func TestCreateSeedJobsRejectsEmptyQueryBeforeCustomID(t *testing.T) {
 		nil,
 		nil,
 		false,
+		false,
 	)
 	if err == nil || !strings.Contains(err.Error(), "empty query text") {
 		t.Fatalf("expected empty query text error, got %v", err)
+	}
+}
+
+func TestCreateSeedJobsRejectsPhotoMetadataInFastMode(t *testing.T) {
+	t.Parallel()
+
+	_, err := runner.CreateSeedJobs(
+		true,
+		"en",
+		strings.NewReader("coffee\n"),
+		10,
+		false,
+		"40.7128,-74.0060",
+		15,
+		10000,
+		nil,
+		nil,
+		false,
+		true,
+	)
+	if err == nil || !strings.Contains(err.Error(), "photo metadata") {
+		t.Fatalf("expected photo metadata fast mode error, got %v", err)
 	}
 }
 
@@ -76,6 +100,7 @@ func TestCreateGridSeedJobsRejectsEmptyQueryBeforeCustomID(t *testing.T) {
 		15,
 		nil,
 		nil,
+		false,
 		false,
 	)
 	if err == nil || !strings.Contains(err.Error(), "empty query text") {

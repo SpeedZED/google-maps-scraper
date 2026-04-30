@@ -94,6 +94,7 @@ type ScrapeJobArgs struct {
 	Radius         float64 `json:"radius"`
 	FastMode       bool    `json:"fast_mode"`
 	ExtraReviews   bool    `json:"extra_reviews"`
+	PhotoMetadata  bool    `json:"photo_metadata"`
 	TimeoutSecs    int     `json:"timeout"` // timeout in seconds
 }
 
@@ -210,6 +211,9 @@ func (w *ScrapeWorker) Work(ctx context.Context, job *river.Job[ScrapeJobArgs]) 
 
 		if args.ExtraReviews {
 			opts = append(opts, gmaps.WithExtraReviews())
+		}
+		if args.PhotoMetadata {
+			opts = append(opts, gmaps.WithPhotoMetadata())
 		}
 
 		scrapeJob = gmaps.NewGmapJob(

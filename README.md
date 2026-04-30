@@ -206,6 +206,7 @@ Useful options:
 | Extract emails from business websites | `-email` |
 | Write JSON instead of CSV | `-json -results /out/results.json` |
 | Collect extra reviews | `-extra-reviews -json -results /out/results.json` |
+| Collect photo metadata when Google Maps exposes it | `-photo-metadata -json -results /out/results.json` |
 | Increase concurrency | `-c 4`, `-c 8`, or `-c 16` |
 | Use proxies | `-proxies "http://user:pass@host:port,socks5://host:port"` |
 
@@ -368,17 +369,18 @@ go build
 | 21 | `timezone` | Business timezone |
 | 22 | `price_range` | Price level ($, $$, $$$) |
 | 23 | `data_id` | Internal Google Maps identifier |
-| 24 | `images` | Associated image URLs |
-| 25 | `reservations` | Reservation booking link |
-| 26 | `order_online` | Online ordering link |
-| 27 | `menu` | Menu link |
-| 28 | `owner` | Owner-claimed status |
-| 29 | `complete_address` | Full formatted address |
-| 30 | `about` | Additional business info |
-| 31 | `user_reviews` | Customer reviews (text, rating, timestamp) |
-| 32 | `emails` | Extracted email addresses (requires `-email` flag) |
-| 33 | `user_reviews_extended` | Extended reviews up to ~300 (requires `-extra-reviews`) |
-| 34 | `place_id` | Google's unique place id |
+| 24 | `place_id` | Google's unique place id |
+| 25 | `images` | Associated image URLs |
+| 26 | `photo_metadata` | Photo metadata evidence when available (requires `-photo-metadata`) |
+| 27 | `reservations` | Reservation booking link |
+| 28 | `order_online` | Online ordering link |
+| 29 | `menu` | Menu link |
+| 30 | `owner` | Owner-claimed status |
+| 31 | `complete_address` | Full formatted address |
+| 32 | `about` | Additional business info |
+| 33 | `user_reviews` | Customer reviews (text, rating, timestamp) |
+| 34 | `user_reviews_extended` | Extended reviews up to ~300 (requires `-extra-reviews`) |
+| 35 | `emails` | Extracted email addresses (requires `-email` flag) |
 
 </details>
 
@@ -406,6 +408,7 @@ Core Options:
 Email & Reviews:
   -email             Extract emails from business websites
   -extra-reviews     Collect extended reviews (up to ~300)
+  -photo-metadata    Collect photo metadata when Google Maps exposes it
 
 Location Settings:
   -lang string       Language code, e.g., 'de' for German (default: "en")

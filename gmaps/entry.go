@@ -17,6 +17,16 @@ type Image struct {
 	Image string `json:"image"`
 }
 
+type PhotoMetadata struct {
+	Title          string `json:"title"`
+	Image          string `json:"image"`
+	PostedDate     string `json:"posted_date,omitempty"`
+	PostedDateText string `json:"posted_date_text,omitempty"`
+	Contributor    string `json:"contributor,omitempty"`
+	Source         string `json:"source"`
+	Status         string `json:"status"`
+}
+
 type LinkSource struct {
 	Link   string `json:"link"`
 	Source string `json:"source"`
@@ -86,6 +96,7 @@ type Entry struct {
 	DataID              string                 `json:"data_id"`
 	PlaceID             string                 `json:"place_id"`
 	Images              []Image                `json:"images"`
+	PhotoMetadata       []PhotoMetadata        `json:"photo_metadata"`
 	Reservations        []LinkSource           `json:"reservations"`
 	OrderOnline         []LinkSource           `json:"order_online"`
 	Menu                LinkSource             `json:"menu"`
@@ -183,6 +194,7 @@ func (e *Entry) CsvHeaders() []string {
 		"data_id",
 		"place_id",
 		"images",
+		"photo_metadata",
 		"reservations",
 		"order_online",
 		"menu",
@@ -222,6 +234,7 @@ func (e *Entry) CsvRow() []string {
 		e.DataID,
 		e.PlaceID,
 		stringify(e.Images),
+		stringify(e.PhotoMetadata),
 		stringify(e.Reservations),
 		stringify(e.OrderOnline),
 		stringify(e.Menu),
@@ -245,6 +258,21 @@ func (e *Entry) AddExtraReviews(pages [][]byte) {
 			e.UserReviewsExtended = append(e.UserReviewsExtended, reviews...)
 		}
 	}
+}
+
+func (e *Entry) AddPhotoMetadataFromJSON(raw []byte) error {
+	if len(e.Images) == 0 {
+		return nil
+	}
+
+	var jd []any
+	if err := json.Unmarshal(raw, &jd); err != nil {
+		return err
+	}
+
+	e.PhotoMetadata = ExtractPhotoMetadataFromPayload(jd, e.Images)
+
+	return nil
 }
 
 func extractReviews(data []byte) []Review {

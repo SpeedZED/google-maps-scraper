@@ -165,18 +165,19 @@ func (s *Server) Start(ctx context.Context) error {
 }
 
 type formData struct {
-	Name     string
-	MaxTime  string
-	Keywords []string
-	Language string
-	Zoom     int
-	FastMode bool
-	Radius   int
-	Lat      string
-	Lon      string
-	Depth    int
-	Email    bool
-	Proxies  []string
+	Name          string
+	MaxTime       string
+	Keywords      []string
+	Language      string
+	Zoom          int
+	FastMode      bool
+	Radius        int
+	Lat           string
+	Lon           string
+	Depth         int
+	Email         bool
+	PhotoMetadata bool
+	Proxies       []string
 }
 
 type ctxKey string
@@ -228,17 +229,18 @@ func (s *Server) index(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := formData{
-		Name:     "",
-		MaxTime:  "10m",
-		Keywords: []string{},
-		Language: "en",
-		Zoom:     15,
-		FastMode: false,
-		Radius:   10000,
-		Lat:      "0",
-		Lon:      "0",
-		Depth:    10,
-		Email:    false,
+		Name:          "",
+		MaxTime:       "10m",
+		Keywords:      []string{},
+		Language:      "en",
+		Zoom:          15,
+		FastMode:      false,
+		Radius:        10000,
+		Lat:           "0",
+		Lon:           "0",
+		Depth:         10,
+		Email:         false,
+		PhotoMetadata: false,
 	}
 
 	_ = tmpl.Execute(w, data)
@@ -331,6 +333,7 @@ func (s *Server) scrape(w http.ResponseWriter, r *http.Request) {
 	}
 
 	newJob.Data.Email = r.Form.Get("email") == "on"
+	newJob.Data.PhotoMetadata = r.Form.Get("photo_metadata") == "on"
 
 	proxies := strings.Split(r.Form.Get("proxies"), "\n")
 	if len(proxies) > 0 {

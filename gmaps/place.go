@@ -21,6 +21,7 @@ type PlaceJob struct {
 	ExtractEmail            bool
 	ExitMonitor             exiter.Exiter
 	ExtractExtraReviews     bool
+	ExtractPhotoMetadata    bool
 	WriterManagedCompletion bool
 }
 
@@ -51,6 +52,12 @@ func NewPlaceJob(parentID, langCode, u string, extractEmail, extraExtraReviews b
 	}
 
 	return &job
+}
+
+func WithPlaceJobPhotoMetadata() PlaceJobOptions {
+	return func(j *PlaceJob) {
+		j.ExtractPhotoMetadata = true
+	}
 }
 
 func WithPlaceJobExitMonitor(exitMonitor exiter.Exiter) PlaceJobOptions {
@@ -106,6 +113,12 @@ func (j *PlaceJob) Process(_ context.Context, resp *scrapemate.Response) (any, [
 
 	if entry.Link == "" {
 		entry.Link = j.GetURL()
+	}
+
+	if j.ExtractPhotoMetadata {
+		if err := entry.AddPhotoMetadataFromJSON(raw); err != nil {
+			fmt.Printf("Warning: photo metadata extraction failed: %v\n", err)
+		}
 	}
 
 	// Handle RPC-based reviews

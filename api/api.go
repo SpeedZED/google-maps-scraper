@@ -111,6 +111,7 @@ func scrapeHandler(appState *AppState) http.HandlerFunc {
 			Radius:         req.Radius,
 			FastMode:       req.FastMode,
 			ExtraReviews:   req.ExtraReviews,
+			PhotoMetadata:  req.PhotoMetadata,
 			TimeoutSecs:    req.Timeout,
 		}
 

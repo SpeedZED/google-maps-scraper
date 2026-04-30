@@ -28,6 +28,7 @@ type GmapJob struct {
 	Deduper                 deduper.Deduper
 	ExitMonitor             exiter.Exiter
 	ExtractExtraReviews     bool
+	ExtractPhotoMetadata    bool
 	WriterManagedCompletion bool
 }
 
@@ -97,6 +98,12 @@ func WithExtraReviews() GmapJobOptions {
 	}
 }
 
+func WithPhotoMetadata() GmapJobOptions {
+	return func(j *GmapJob) {
+		j.ExtractPhotoMetadata = true
+	}
+}
+
 func WithWriterManagedCompletion() GmapJobOptions {
 	return func(j *GmapJob) {
 		j.WriterManagedCompletion = true
@@ -147,6 +154,9 @@ func (j *GmapJob) Process(ctx context.Context, resp *scrapemate.Response) (any, 
 		if j.WriterManagedCompletion {
 			jopts = append(jopts, WithPlaceJobWriterManagedCompletion())
 		}
+		if j.ExtractPhotoMetadata {
+			jopts = append(jopts, WithPlaceJobPhotoMetadata())
+		}
 
 		placeJob := NewPlaceJob(j.ID, j.LangCode, resp.URL, j.ExtractEmail, j.ExtractExtraReviews, jopts...)
 
@@ -161,6 +171,9 @@ func (j *GmapJob) Process(ctx context.Context, resp *scrapemate.Response) (any, 
 
 				if j.WriterManagedCompletion {
 					jopts = append(jopts, WithPlaceJobWriterManagedCompletion())
+				}
+				if j.ExtractPhotoMetadata {
+					jopts = append(jopts, WithPlaceJobPhotoMetadata())
 				}
 
 				nextJob := NewPlaceJob(j.ID, j.LangCode, href, j.ExtractEmail, j.ExtractExtraReviews, jopts...)
