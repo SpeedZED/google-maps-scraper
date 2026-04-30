@@ -18,13 +18,11 @@ type Image struct {
 }
 
 type PhotoMetadata struct {
-	Title          string `json:"title"`
-	Image          string `json:"image"`
-	PostedDate     string `json:"posted_date,omitempty"`
-	PostedDateText string `json:"posted_date_text,omitempty"`
-	Contributor    string `json:"contributor,omitempty"`
-	Source         string `json:"source"`
-	Status         string `json:"status"`
+	Title      string `json:"title"`
+	Image      string `json:"image"`
+	PostedDate string `json:"posted_date,omitempty"`
+	Source     string `json:"source"`
+	Status     string `json:"status"`
 }
 
 type LinkSource struct {

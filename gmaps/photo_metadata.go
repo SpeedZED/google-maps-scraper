@@ -58,7 +58,7 @@ func ExtractPhotoMetadataFromPayload(root any, images []Image) []PhotoMetadata {
 			meta.Source = PhotoMetadataSourcePayload
 		}
 		if meta.Status == "" {
-			if meta.PostedDate != "" || meta.PostedDateText != "" || meta.Contributor != "" {
+			if meta.PostedDate != "" {
 				meta.Status = PhotoMetadataStatusFound
 			} else {
 				meta.Status = PhotoMetadataStatusUnavailable
@@ -72,17 +72,15 @@ func ExtractPhotoMetadataFromPayload(root any, images []Image) []PhotoMetadata {
 
 func walkPhotoMetadata(node any, ancestors []any, images map[string]Image, found map[string]PhotoMetadata) {
 	switch v := node.(type) {
-	case []any:
-		if url := firstGoogleImageURL(v); url != "" {
-			key := normalizeGoogleImageURL(url)
-			if item, ok := images[key]; ok {
-				meta := photoMetadataFromContext(item, v, ancestors)
-				if existing, exists := found[key]; !exists || metadataCompleteness(meta) > metadataCompleteness(existing) {
-					found[key] = meta
-				}
+	case string:
+		key := normalizeGoogleImageURL(v)
+		if item, ok := images[key]; ok {
+			meta := photoMetadataFromContext(item, ancestors)
+			if existing, exists := found[key]; !exists || metadataCompleteness(meta) > metadataCompleteness(existing) {
+				found[key] = meta
 			}
 		}
-
+	case []any:
 		nextAncestors := append(ancestors, v)
 		for _, child := range v {
 			walkPhotoMetadata(child, nextAncestors, images, found)
@@ -95,7 +93,7 @@ func walkPhotoMetadata(node any, ancestors []any, images map[string]Image, found
 	}
 }
 
-func photoMetadataFromContext(item Image, current []any, ancestors []any) PhotoMetadata {
+func photoMetadataFromContext(item Image, ancestors []any) PhotoMetadata {
 	meta := PhotoMetadata{
 		Title:  item.Title,
 		Image:  item.Image,
@@ -103,64 +101,21 @@ func photoMetadataFromContext(item Image, current []any, ancestors []any) PhotoM
 		Status: PhotoMetadataStatusUnavailable,
 	}
 
-	contexts := make([]any, 0, len(ancestors)+1)
-	contexts = append(contexts, current)
+	// Google Maps currently keeps the structured photo date tuple in a nearby
+	// payload container on the path to the photo image URL. Walk outward from
+	// the URL's closest containers and only keep the stable ISO date.
 	for i := len(ancestors) - 1; i >= 0; i-- {
-		contexts = append(contexts, ancestors[i])
-		if len(contexts) >= 6 {
+		meta.PostedDate = findDateTuple(ancestors[i])
+		if meta.PostedDate != "" || len(ancestors)-i >= 6 {
 			break
 		}
 	}
 
-	for _, ctx := range contexts {
-		if meta.PostedDate == "" {
-			meta.PostedDate = findDateTuple(ctx)
-		}
-		if meta.PostedDateText == "" {
-			meta.PostedDateText = findDateText(ctx)
-		}
-		if meta.Contributor == "" {
-			meta.Contributor = findLikelyContributor(ctx)
-		}
-	}
-
-	if meta.PostedDate != "" || meta.PostedDateText != "" || meta.Contributor != "" {
+	if meta.PostedDate != "" {
 		meta.Status = PhotoMetadataStatusFound
 	}
 
 	return meta
-}
-
-func firstGoogleImageURL(node any) string {
-	var ans string
-	var walk func(any)
-	walk = func(value any) {
-		if ans != "" {
-			return
-		}
-		switch v := value.(type) {
-		case string:
-			if strings.Contains(v, "googleusercontent.com") || strings.Contains(v, "ggpht.com") {
-				ans = v
-			}
-		case []any:
-			for _, child := range v {
-				walk(child)
-				if ans != "" {
-					return
-				}
-			}
-		case map[string]any:
-			for _, child := range v {
-				walk(child)
-				if ans != "" {
-					return
-				}
-			}
-		}
-	}
-	walk(node)
-	return ans
 }
 
 func normalizeGoogleImageURL(raw string) string {
@@ -175,12 +130,6 @@ func metadataCompleteness(meta PhotoMetadata) int {
 	score := 0
 	if meta.PostedDate != "" {
 		score += 4
-	}
-	if meta.PostedDateText != "" {
-		score += 2
-	}
-	if meta.Contributor != "" {
-		score++
 	}
 	return score
 }
@@ -242,81 +191,4 @@ func numericInt(value any) (int, bool) {
 	default:
 		return 0, false
 	}
-}
-
-func findDateText(node any) string {
-	switch v := node.(type) {
-	case string:
-		if looksLikeDateText(v) {
-			return strings.TrimSpace(v)
-		}
-	case []any:
-		for _, child := range v {
-			if text := findDateText(child); text != "" {
-				return text
-			}
-		}
-	case map[string]any:
-		for _, child := range v {
-			if text := findDateText(child); text != "" {
-				return text
-			}
-		}
-	}
-	return ""
-}
-
-func looksLikeDateText(value string) bool {
-	value = strings.TrimSpace(strings.ToLower(value))
-	if len(value) < 4 || len(value) > 80 {
-		return false
-	}
-	needles := []string{
-		"ago", "posted", "uploaded", "taken",
-		"jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec",
-		"يناير", "فبراير", "مارس", "أبريل", "ماي", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر",
-	}
-	for _, needle := range needles {
-		if strings.Contains(value, needle) {
-			return true
-		}
-	}
-	return false
-}
-
-func findLikelyContributor(node any) string {
-	switch v := node.(type) {
-	case []any:
-		for _, child := range v {
-			if name := findLikelyContributor(child); name != "" {
-				return name
-			}
-		}
-	case map[string]any:
-		for _, child := range v {
-			if name := findLikelyContributor(child); name != "" {
-				return name
-			}
-		}
-	case string:
-		value := strings.TrimSpace(v)
-		if looksLikeContributorName(value) {
-			return value
-		}
-	}
-	return ""
-}
-
-func looksLikeContributorName(value string) bool {
-	if len(value) < 2 || len(value) > 64 {
-		return false
-	}
-	lower := strings.ToLower(value)
-	blocked := []string{"http", "google", "maps", "photo", "image", "reviews", "rating", "directions"}
-	for _, item := range blocked {
-		if strings.Contains(lower, item) {
-			return false
-		}
-	}
-	return strings.Contains(value, " ") || strings.ContainsAny(value, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 }

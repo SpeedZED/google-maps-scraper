@@ -107,8 +107,6 @@ func cleanPhotoMetadata(items []gmaps.PhotoMetadata) {
 		items[i].Title = cleanString(items[i].Title)
 		items[i].Image = cleanString(items[i].Image)
 		items[i].PostedDate = cleanString(items[i].PostedDate)
-		items[i].PostedDateText = cleanString(items[i].PostedDateText)
-		items[i].Contributor = cleanString(items[i].Contributor)
 		items[i].Source = cleanString(items[i].Source)
 		items[i].Status = cleanString(items[i].Status)
 	}
